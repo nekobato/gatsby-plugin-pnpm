@@ -1,6 +1,15 @@
 import * as path from 'path';
+import * as os from 'os';
+import { existsSync, mkdirSync, mkdtempSync, rmdirSync, writeFileSync } from 'fs';
 import { mocked } from 'ts-jest/utils';
-import { isDir, fileExists, walkBack, realpath, getPkgNodeModules } from '../src/utils';
+import {
+    isDir,
+    fileExists,
+    walkBack,
+    realpath,
+    getPkgNodeModules,
+    getPnpmVirtualStoreDir,
+} from '../src/utils';
 
 jest.mock('path');
 const { resolve, join } = jest.requireActual('path');
@@ -8,7 +17,7 @@ const { resolve, join } = jest.requireActual('path');
 describe('Utility function tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mocked(path.resolve).mockImplementation((str) => resolve(str));
+        mocked(path.resolve).mockImplementation((...str) => resolve(...str));
         mocked(path.join).mockImplementation((...str) => join(...str));
     });
 
@@ -68,6 +77,64 @@ describe('Utility function tests', () => {
                 nodeModules: join(__dirname, 'node_modules'),
                 strict: true,
             })).toBe(shouldBe);
+        });
+    });
+
+    describe('getPnpmVirtualStoreDir() is accurate', () => {
+        const createTempModulesDir = () => {
+            const tempDir = mkdtempSync(join(os.tmpdir(), 'gatsby-plugin-pnpm-'));
+            const nodeModules = join(tempDir, 'node_modules');
+            mkdirSync(nodeModules, { recursive: true });
+            return { tempDir, nodeModules };
+        };
+
+        const removeTempDir = (target: string) => {
+            if (existsSync(target)) {
+                rmdirSync(target, { recursive: true });
+            }
+        };
+
+        it('Falls back to default virtual store directory when no modules manifest exists', async () => {
+            const { tempDir, nodeModules } = createTempModulesDir();
+            try {
+                expect(await getPnpmVirtualStoreDir(nodeModules)).toBe(
+                    join(nodeModules, '.pnpm'),
+                );
+            } finally {
+                removeTempDir(tempDir);
+            }
+        });
+
+        it('Resolves a relative virtualStoreDir from .modules.yaml', async () => {
+            const { tempDir, nodeModules } = createTempModulesDir();
+            try {
+                writeFileSync(
+                    join(nodeModules, '.modules.yaml'),
+                    'virtualStoreDir: ../.cache/pnpm-store\n',
+                    'utf8',
+                );
+                expect(await getPnpmVirtualStoreDir(nodeModules)).toBe(
+                    resolve(nodeModules, '../.cache/pnpm-store'),
+                );
+            } finally {
+                removeTempDir(tempDir);
+            }
+        });
+
+        it('Resolves a quoted virtualStoreDir from .modules.yaml', async () => {
+            const { tempDir, nodeModules } = createTempModulesDir();
+            try {
+                writeFileSync(
+                    join(nodeModules, '.modules.yaml'),
+                    'virtualStoreDir: ".pnpm-custom"\n',
+                    'utf8',
+                );
+                expect(await getPnpmVirtualStoreDir(nodeModules)).toBe(
+                    join(nodeModules, '.pnpm-custom'),
+                );
+            } finally {
+                removeTempDir(tempDir);
+            }
         });
     });
 });

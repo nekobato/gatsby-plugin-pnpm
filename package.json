@@ -1,14 +1,14 @@
 {
-  "name": "gatsby-plugin-pnpm",
-  "version": "1.2.10",
-  "description": "Easily add pnpm support to your Gatsby project",
+  "name": "@nekobato/gatsby-plugin-pnpm",
+  "version": "1.3.0",
+  "description": "Maintained fork of gatsby-plugin-pnpm with pnpm support for modern virtual store layouts",
   "main": "index.js",
   "types": "./dist/gatsby-node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Js-Brecht/gatsby-plugin-pnpm"
+    "url": "https://github.com/nekobato/gatsby-plugin-pnpm"
   },
-  "homepage": "https://github.com/Js-Brecht/gatsby-plugin-pnpm",
+  "homepage": "https://github.com/nekobato/gatsby-plugin-pnpm#readme",
   "keywords": [
     "gatsby-plugin",
     "gatsby",
@@ -16,9 +16,15 @@
     "webpack"
   ],
   "author": "Jeremy Albright",
+  "contributors": [
+    "nekobato contributors"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Js-Brecht/gatsby-plugin-pnpm/issues"
+    "url": "https://github.com/nekobato/gatsby-plugin-pnpm/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "dist",

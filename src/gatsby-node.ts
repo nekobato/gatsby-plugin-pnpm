@@ -2,7 +2,7 @@ import * as path from 'path';
 import { Configuration } from 'webpack';
 import { GatsbyNode, CreateWebpackConfigArgs, PluginOptions } from 'gatsby';
 import uniq from 'lodash.uniq';
-import { isDir, getPkgNodeModules } from './utils';
+import { isDir, getPkgNodeModules, getPnpmVirtualStoreDir } from './utils';
 import { fixFrameworkCache } from "./fixes";
 
 export interface IPluginOptions extends Omit<PluginOptions, 'plugins'> {
@@ -44,11 +44,12 @@ export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = async 
         strict = true,
     } = options;
     const nodeModules = path.resolve(path.join(projectPath, 'node_modules'));
-    const pnpmNodeModules = path.join(nodeModules, '.pnpm', 'node_modules');
+    const pnpmVirtualStoreDir = await getPnpmVirtualStoreDir(nodeModules);
+    const pnpmNodeModules = path.join(pnpmVirtualStoreDir, 'node_modules');
 
     const gatsbyNodeModules = await getPkgNodeModules({ pkgName: 'gatsby', nodeModules, strict });
     if (!gatsbyNodeModules) {
-        return reporter.panic('[gatsby-plugin-pnpm] You must have Gatsby installed to use this plugin!');
+        return reporter.panic('[@nekobato/gatsby-plugin-pnpm] You must have Gatsby installed to use this plugin!');
     }
 
     const modulePaths: string[] = [
@@ -84,7 +85,7 @@ export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = async 
 
             // This isn't a directory, or a package/dependency, so print a warning to tell the user
             // they might have an error in their configuration
-            reporter.warn(`[gatsby-plugin-pnpm] Unable to locate dependency ${incName}!`);
+            reporter.warn(`[@nekobato/gatsby-plugin-pnpm] Unable to locate dependency ${incName}!`);
         }
     }
 

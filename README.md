@@ -1,101 +1,87 @@
-## PNPM Compatibility Plugin for Gatsby
+# @nekobato/gatsby-plugin-pnpm
 
-[![codecov](https://codecov.io/gh/Js-Brecht/gatsby-plugin-pnpm/branch/master/graph/badge.svg)](https://codecov.io/gh/Js-Brecht/gatsby-plugin-pnpm)
+Maintained fork of [`Js-Brecht/gatsby-plugin-pnpm`](https://github.com/Js-Brecht/gatsby-plugin-pnpm).
 
----
+## Fork status
 
+This repository is actively maintained by `nekobato` as a continuation fork.
+Upstream credits are preserved, and development continues in this fork.
 
-### Description
+## Description
 
-This plugin will configure Webpack module & loader resolution for packages installed
-via `pnpm`.
+This plugin configures Webpack module and loader resolution for packages installed via `pnpm`.
 
-When using `pnpm`, building a Gatsby project will fail because `pnpm` uses a unique
-`node_modules` structure, and `webpack` doesn't know how to resolve packages in it.
-This plugin will configure `webpack` so that it is able to see `Gatsby`'s dependencies.
+When using `pnpm`, Gatsby builds may fail because pnpm's `node_modules` structure differs from npm/yarn. This plugin updates Webpack resolution so Gatsby can resolve dependencies correctly.
 
----
+## What's updated in this fork
 
-### How to install
+- Published package name is now `@nekobato/gatsby-plugin-pnpm`.
+- Repository and issue tracker now point to `nekobato/gatsby-plugin-pnpm`.
+- Added compatibility for modern pnpm virtual stores by reading `node_modules/.modules.yaml` and resolving `virtualStoreDir` automatically (including custom `virtual-store-dir` values).
 
-* Add the package to devDependencies
+## Installation
 
 ```sh
-pnpm add -D gatsby-plugin-pnpm
+pnpm add -D @nekobato/gatsby-plugin-pnpm
 ```
 
-* Include the plugin in your `gatsby-config.js`.
+Add it to `gatsby-config.js`:
 
 ```js
 // gatsby-config.js
 module.exports = {
   plugins: [
-    ...,
-    `gatsby-plugin-pnpm`,
-    ...
-  ]
+    `@nekobato/gatsby-plugin-pnpm`,
+  ],
 }
 ```
 
-That's it.  You should be able to build now.
+## Migration from upstream package
 
----
+Replace the old package:
 
-### Extended usage
+```sh
+pnpm remove gatsby-plugin-pnpm
+pnpm add -D @nekobato/gatsby-plugin-pnpm
+```
 
-#### Option: `include` - define custom resolutions
+And update your Gatsby config from `gatsby-plugin-pnpm` to `@nekobato/gatsby-plugin-pnpm`.
 
-Variations:
+## Extended usage
 
-* Add resolution for specific package
+### Option: `include`
 
-  * Sometimes, Webpack may need to resolve a module that is a sub-dependency of one of your
-    project's dependencies, and due to the way Webpack resolves modules (and sometimes because of
-    the way those modules are written), it won't be able to.  If this is the case, we need to point
-    Webpack the way to where those sub-dependencies are located.  To do that, please include your
-    dependency in question in the `include` plugin option described [below](#available-options).
+Use this option to add extra module resolution targets.
 
-    * Note: if the `strict` option is `true`, then the package you define in this manner **MUST**
-      be one of your project's direct dependencies, because it will be resolved using your project's
-      `node_modules` directory.
+- Package names:
+  - Add package names that Webpack should resolve.
+  - If `strict: true`, included package names must be direct dependencies of your project.
+- Directory paths:
+  - Add directories that contain modules or loaders.
+  - Relative paths are resolved from `process.cwd()`.
+  - Paths must point to directories.
 
-* add resolutions for directories
+### Option: `projectPath`
 
-  * There are also times where you want Webpack to be able to resolve modules in a directory that
-    is not a part of any of your dependencies `node_modules`.  If that's the case, please include
-    the directory path in the `include` option described below.
-    
-    * If you include a relative path, it will be resolved relative to your `process.cwd()`.
-    * **MUST BE A DIRECTORY**.
+- Default: `process.cwd()`.
+- Use this when your project root differs from the process cwd.
+- Relative paths are resolved from `process.cwd()`.
 
-#### Option: `projectPath` - define your Project Root
+### Option: `strict`
 
-* This defaults to `process.cwd()`.
-* You may encounter a time that your Project root is different than your `process.cwd()`.  In
-that case, please define the `projectPath` option described below.
-  * **NOTE**: If a relative path is defined, then it will be resolved relative to your `process.cwd()`,
-  which may not be desired if you're using this option in the first place.
+- Default: `true`.
+- `true`: Resolve using project-scoped pnpm behavior.
+- `false`: Use Node module resolution and walk up parent directories.
 
-#### Option: `strict` - module resolution
+## Available options
 
-* This option defaults to `true`.
-* There may be times when you need to be able to resolve Gatsby, and whatever package names are defined in
-`include, using node's module resolution resolution.
-  * `true`: Keep with the `pnpm` philosophy of scoping modules to your current project.
-  * `false`: Use Node's module resolution.  This causes `node_modules` to be checked walking backwards up
-  your directory tree.
+| Option | Description |
+| :----- | :---------- |
+| `include` | Optional list of package names and/or directory paths that should be available to Webpack resolution. |
+| `projectPath` | Optional path to the project root (directory containing `package.json`). Used for resolving package and `node_modules` paths. |
+| `strict` | Optional boolean, default `true`. `true` keeps pnpm-style project scoping. `false` uses Node's upward directory resolution. |
 
----
-
-### Available Options
-
-| Option   | Description |
-|:---------|:------------|
-| include  | **OPTIONAL**: A list of package names and/or paths that you would like to be made available to Webpack.  Each of these should either be the name of one of your project's direct dependencies, or a path to a folder containing packages that can be resolved as a module.
-| projectPath | **OPTIONAL**: The path to your project; i.e. the folder containing your `package.json`.  This will be used when locating package names defined in `include`, and for resolving your project's `node_modules` directory
-| strict | **OPTIONAL**: Defaults to true.<br /> `true` = Resolve modules using the `pnpm` philosophy of limiting the module scope to your project. <br /> `false` = Use `node`'s module resolution, which looks in every `node_modules` walking up your directory tree. |
-
-Plugin options could be defined as follows:
+Example:
 
 ```js
 // gatsby-config.js
@@ -103,24 +89,26 @@ const path = require('path');
 
 module.exports = {
   plugins: [
-    ...
     {
-      resolve: `gatsby-plugin-pnpm`,
+      resolve: `@nekobato/gatsby-plugin-pnpm`,
       options: {
-        projectPath: path.dirname(__dirname), // use parent directory as project root
+        projectPath: path.dirname(__dirname),
         include: [
-          `my-awesome-package`, // <- resolve this package name
-          `path/to/my/private/webpack/loaders` // <- resolve from this directory
+          `my-awesome-package`,
+          `path/to/my/private/webpack/loaders`,
         ],
-        strict: true
-      }
-    }
-  ]
-  ...
-}
+        strict: true,
+      },
+    },
+  ],
+};
 ```
 
-## Issues / Contributing
+## Issues and contributing
 
-If you notice any issues caused by this plugin, or there seems to be some feature missing,
-please feel free to file an issue at <https://github.com/Js-Brecht/gatsby-plugin-pnpm/issues>
+Please open issues at:
+<https://github.com/nekobato/gatsby-plugin-pnpm/issues>
+
+## License
+
+MIT. This fork preserves the original copyright notice and license terms.
