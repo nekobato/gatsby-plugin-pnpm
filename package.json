@@ -39,7 +39,8 @@
     "access": "public"
   },
   "files": [
-    "dist",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "gatsby-node.js",
     "README.md",
     "LICENSE"
