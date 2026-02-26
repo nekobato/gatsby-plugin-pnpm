@@ -2,11 +2,6 @@
 
 Maintained fork of [`Js-Brecht/gatsby-plugin-pnpm`](https://github.com/Js-Brecht/gatsby-plugin-pnpm).
 
-## Fork status
-
-This repository is actively maintained by `nekobato` as a continuation fork.
-Upstream credits are preserved, and development continues in this fork.
-
 ## Description
 
 This plugin configures Webpack module and loader resolution for packages installed via `pnpm`.
