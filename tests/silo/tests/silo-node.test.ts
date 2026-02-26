@@ -1,21 +1,26 @@
-import * as path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { vi, type Mock } from 'vitest';
 import type { Configuration as WebpackConfig } from 'webpack';
-import { CreateWebpackConfigArgs as _CreateWebpackConfigArgs } from 'gatsby';
+import type { CreateWebpackConfigArgs as _CreateWebpackConfigArgs } from 'gatsby';
 import { realpath, walkBack } from '../../../src/utils';
 import { onCreateWebpackConfig as _onCreateWebpackConfig, IPluginOptions } from '../../../src/gatsby-node';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const reporter = {
-    warn: jest.fn((message: string): string => message),
-    panic: jest.fn((message: string): string => message),
+    warn: vi.fn((message: string): string => message),
+    panic: vi.fn((message: string): string => message),
 };
 
 interface CreateWebpackConfigArgs {
     actions: {
-        replaceWebpackConfig: jest.Mock<WebpackConfig, [WebpackConfig]>;
+        replaceWebpackConfig: Mock<(config: WebpackConfig) => WebpackConfig>;
     };
     reporter: typeof reporter;
     getConfig: _CreateWebpackConfigArgs['getConfig'];
-    store: _CreateWebpackConfigArgs["store"];
+    store: _CreateWebpackConfigArgs['store'];
 }
 type IOnCreateWebpackConfig = (actions: CreateWebpackConfigArgs, options?: IPluginOptions) => Promise<void>;
 
@@ -33,9 +38,8 @@ const getConfigResults = (resolutions: string[]): WebpackConfig => {
 };
 
 describe('Defining module/loader resolutions in silo', () => {
-
     const onCreateWebpackConfig = _onCreateWebpackConfig as unknown as IOnCreateWebpackConfig;
-    const replaceWebpackConfig: CreateWebpackConfigArgs['actions']['replaceWebpackConfig'] = jest.fn((config) => config);
+    const replaceWebpackConfig: CreateWebpackConfigArgs['actions']['replaceWebpackConfig'] = vi.fn((config) => config);
     const actions: CreateWebpackConfigArgs['actions'] = {
         replaceWebpackConfig,
     };
@@ -44,9 +48,9 @@ describe('Defining module/loader resolutions in silo', () => {
         reporter,
         getConfig: () => ({}),
         store: {
-            dispatch: jest.fn(),
-            replaceReducer: jest.fn(),
-            subscribe: jest.fn(),
+            dispatch: vi.fn(),
+            replaceReducer: vi.fn(),
+            subscribe: vi.fn(),
             getState: () => ({
                 program: {
                     directory: process.cwd(),
@@ -84,23 +88,23 @@ describe('Defining module/loader resolutions in silo', () => {
             expect(replaceWebpackConfig).toHaveBeenLastCalledWith(shouldEqual);
         });
         it('With strict off, include package name', async () => {
+            process.chdir(__dirname);
             const resolutions = [
                 'node_modules',
                 path.resolve(path.join(__dirname, 'node_modules')),
                 await walkBack(await realpath(path.join(rootNodeModules, 'gatsby'))),
                 path.resolve('node_modules', '.pnpm', 'node_modules'),
-                await walkBack(await realpath(path.join(rootNodeModules, 'jest'))),
+                await walkBack(await realpath(path.join(rootNodeModules, 'vitest'))),
             ];
             const shouldEqual = getConfigResults(resolutions);
             await onCreateWebpackConfig(args, {
                 strict: false,
-                include: [
-                    'jest',
-                ],
+                include: ['vitest'],
             });
             expect(replaceWebpackConfig).toHaveBeenLastCalledWith(shouldEqual);
         });
         it('With strict off, include package name and directory', async () => {
+            process.chdir(__dirname);
             const resolutions = [
                 'node_modules',
                 path.resolve(path.join(__dirname, 'node_modules')),
@@ -112,10 +116,7 @@ describe('Defining module/loader resolutions in silo', () => {
             const shouldEqual = getConfigResults(resolutions);
             await onCreateWebpackConfig(args, {
                 strict: false,
-                include: [
-                    'silo-foo-package',
-                    '../../../node_modules',
-                ],
+                include: ['silo-foo-package', '../../../node_modules'],
             });
             expect(replaceWebpackConfig).toHaveBeenLastCalledWith(shouldEqual);
         });
@@ -143,16 +144,13 @@ describe('Defining module/loader resolutions in silo', () => {
                 path.join(testsNodeModules),
                 await walkBack(await realpath(path.join(rootNodeModules, 'gatsby'))),
                 path.resolve(path.join(testsNodeModules, '.pnpm', 'node_modules')),
-                await walkBack(await realpath(path.join(rootNodeModules, 'jest'))),
+                await walkBack(await realpath(path.join(rootNodeModules, 'vitest'))),
                 path.join(testsDir, 'node_modules'),
             ];
             const shouldEqual = getConfigResults(resolutions);
             await onCreateWebpackConfig(args, {
                 strict: false,
-                include: [
-                    'jest',
-                    'foo-package',
-                ],
+                include: ['vitest', 'foo-package'],
                 projectPath: testsDir,
             });
             expect(replaceWebpackConfig).toHaveBeenLastCalledWith(shouldEqual);
@@ -164,18 +162,14 @@ describe('Defining module/loader resolutions in silo', () => {
                 rootNodeModules,
                 await walkBack(await realpath(path.join(rootNodeModules, 'gatsby'))),
                 path.join(rootNodeModules, '.pnpm', 'node_modules'),
-                await walkBack(await realpath(path.join(rootNodeModules, 'jest'))),
+                await walkBack(await realpath(path.join(rootNodeModules, 'vitest'))),
                 curDir,
                 rootDir,
             ];
             const shouldEqual = getConfigResults(resolutions);
             await onCreateWebpackConfig(args, {
                 strict: true,
-                include: [
-                    'jest',
-                    curDir,
-                    '.',
-                ],
+                include: ['vitest', curDir, '.'],
                 projectPath: rootDir,
             });
             expect(replaceWebpackConfig).toHaveBeenLastCalledWith(shouldEqual);

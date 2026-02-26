@@ -1,8 +1,8 @@
-import * as path from 'path';
+import path from 'node:path';
 import type { Configuration } from 'webpack';
-import { GatsbyNode, CreateWebpackConfigArgs, PluginOptions } from 'gatsby';
-import { isDir, getPkgNodeModules, getPnpmVirtualStoreDir } from './utils';
-import { fixFrameworkCache } from "./fixes";
+import type { CreateWebpackConfigArgs, GatsbyNode, PluginOptions } from 'gatsby';
+import { isDir, getPkgNodeModules, getPnpmVirtualStoreDir } from './utils.js';
+import { fixFrameworkCache } from './fixes.js';
 
 export interface IPluginOptions extends Omit<PluginOptions, 'plugins'> {
     include?: string[];
@@ -34,37 +34,27 @@ const uniq = (values: string[]): string[] => Array.from(new Set(values));
  * | strict | **OPTIONAL**: Defaults to true.  `true` = Resolve modules using the `pnpm` philosophy of limiting the module scope of your project.  `false` = Use `node`'s module resolution, which looks in every `node_modules` walking up your directory tree. |
  */
 export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = async (
-    {
-        actions,
-        reporter,
-        getConfig,
-        store,
-    }: CreateWebpackConfigArgs,
+    { actions, reporter, getConfig, store }: CreateWebpackConfigArgs,
     options: IPluginOptions = {} as IPluginOptions,
 ): Promise<void> => {
     const programDirectory = store.getState().program.directory;
     const webpackConfig: Configuration = getConfig();
     const { replaceWebpackConfig } = actions;
-    const {
-        include,
-        projectPath = programDirectory,
-        strict = true,
-    } = options;
+    const { include, projectPath = programDirectory, strict = true } = options;
     const nodeModules = path.resolve(path.join(projectPath, 'node_modules'));
     const pnpmVirtualStoreDir = await getPnpmVirtualStoreDir(nodeModules);
     const pnpmNodeModules = path.join(pnpmVirtualStoreDir, 'node_modules');
 
-    const gatsbyNodeModules = await getPkgNodeModules({ pkgName: 'gatsby', nodeModules, strict });
+    const gatsbyNodeModules = await getPkgNodeModules({
+        pkgName: 'gatsby',
+        nodeModules,
+        strict,
+    });
     if (!gatsbyNodeModules) {
         return reporter.panic('[@nekobato/gatsby-plugin-pnpm] You must have Gatsby installed to use this plugin!');
     }
 
-    const modulePaths: string[] = [
-        'node_modules',
-        nodeModules,
-        gatsbyNodeModules,
-        pnpmNodeModules,
-    ];
+    const modulePaths: string[] = ['node_modules', nodeModules, gatsbyNodeModules, pnpmNodeModules];
 
     if (include) {
         for (const incName of include) {
@@ -72,7 +62,13 @@ export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = async 
             // it being a package
             const isDirectory = /^[./\\]/.test(incName);
             // If the current value resolves as a package, then we use it
-            const nodePath = !isDirectory && await getPkgNodeModules({ pkgName: incName, nodeModules, strict });
+            const nodePath =
+                !isDirectory &&
+                (await getPkgNodeModules({
+                    pkgName: incName,
+                    nodeModules,
+                    strict,
+                }));
             if (nodePath) {
                 modulePaths.push(nodePath);
                 continue;
@@ -83,7 +79,7 @@ export const onCreateWebpackConfig: GatsbyNode['onCreateWebpackConfig'] = async 
             // Get the absolute path with the provided projectPath
             const absPath = path.isAbsolute(incName) ? incName : path.join(projectPath, incName);
             // If not a directory, then we are going to skip this one
-            const pkgPath = await isDir(absPath) && absPath || '';
+            const pkgPath = ((await isDir(absPath)) && absPath) || '';
             // If the defined `include` option index is a directory, then load that
             if (pkgPath) {
                 modulePaths.push(absPath);

@@ -27,23 +27,11 @@
     "README.md",
     "LICENSE"
   ],
-  "scripts": {
-    "purge": "rimraf node_modules && npm run clean",
-    "clean": "rimraf ./dist",
-    "prebuild": "npm run clean",
-    "build": "tsc",
-    "build:watch": "run-s \"build -- -w\"",
-    "test": "jest --config ./jest.config.js --verbose",
-    "test:root": "jest --config ./jest.config.js --verbose",
-    "test:silo": "cd tests/silo; jest --config ./jest.config.js --verbose",
-    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
-  },
   "peerDependencies": {
     "gatsby": "~2.x.x"
   },
   "devDependencies": {
     "@jtechsvcs/eslint-config-typescript": "^2.0.3",
-    "@types/jest": "^25.1.2",
     "@types/node": "^12.12.26",
     "@types/webpack": "^4.41.5",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
@@ -52,10 +40,8 @@
     "coveralls": "^3.0.9",
     "eslint": "^6.8.0",
     "gatsby": "^2.19.12",
-    "jest": "^25.1.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.1",
-    "ts-jest": "^25.2.0",
     "typedoc": "^0.15.8",
     "typescript": "^3.7.5"
   }

@@ -1,6 +1,6 @@
-import path from "path";
+import path from 'node:path';
 import type { Configuration } from 'webpack';
-import { createRequire } from './utils';
+import { createRequire } from './utils.js';
 
 type FrameworkModule = {
     resource?: string;
@@ -27,39 +27,33 @@ export const fixFrameworkCache = (config: Configuration, siteDirectory: string) 
     ) as FrameworkCacheGroup | boolean;
 
     if (!framework) return;
-    if (typeof framework !== "object" || !framework.test) return;
+    if (typeof framework !== 'object' || !framework.test) return;
     if (!(framework.test instanceof RegExp)) return;
 
     const regVal = framework.test
         .toString()
-        .replace(/[[\\\]]/g, "")
+        .replace(/[[\\\]]/g, '')
         .slice(1, -1);
     const frameworkPackages = /\/\(([^)]+)\)\/$/.exec(regVal);
     const frameworkList: string[] = [];
 
-    if (frameworkPackages) {
+    if (frameworkPackages?.[1]) {
         const frameworkRequire = createRequire(`${siteDirectory}/:internal:`);
         Object.assign(
             frameworkList,
             frameworkPackages[1]
-                .split("|")
+                .split('|')
                 .map((f) => {
                     try {
-                        return path.dirname(
-                            frameworkRequire.resolve(`${f}/package.json`),
-                        ) + path.sep;
+                        return path.dirname(frameworkRequire.resolve(`${f}/package.json`)) + path.sep;
                     } catch (err) {
-                        return "";
+                        return '';
                     }
                 })
                 .filter(Boolean),
         );
     }
 
-    const isRootDependency = (val?: string) => (
-        frameworkList.some((f) => val?.startsWith(f))
-    );
-    framework.test = (mod: FrameworkModule) => (
-        isRootDependency(mod.resource)
-    );
+    const isRootDependency = (val?: string) => frameworkList.some((f) => val?.startsWith(f));
+    framework.test = (mod: FrameworkModule) => isRootDependency(mod.resource);
 };

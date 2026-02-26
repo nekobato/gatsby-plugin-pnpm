@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+pnpm-lock.yaml
+tests/node_modules
+tests/silo/node_modules

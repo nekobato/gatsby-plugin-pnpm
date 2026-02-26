@@ -1,31 +1,42 @@
-import * as path from 'path';
-import Module from "module";
-import { stat as _stat, Stats, realpath as _realpath, readFile as _readFile } from 'fs';
-import { promisify } from 'util';
+import path from 'node:path';
+import { readFile, realpath, stat } from 'node:fs/promises';
+import { createRequire as createNodeRequire } from 'node:module';
+import { stat as statCallback, type Stats } from 'node:fs';
 
-export const createRequire = Module.createRequire;
+export const createRequire = createNodeRequire;
+export { realpath };
 
-const stat = promisify(_stat);
-export const realpath = promisify(_realpath);
-const readFile = promisify(_readFile);
+const nodeRequire = createRequire(import.meta.url);
 
-export const fileExists = async (filepath: string): Promise<Stats | void> => {
+/**
+ * Checks whether a file or directory exists at a path.
+ *
+ * @param filepath Absolute or relative path to check.
+ * @returns File stats when the path exists; otherwise undefined.
+ */
+export const fileExists = async (filepath: string): Promise<Stats | undefined> => {
     return new Promise((resolve) => {
-        _stat(filepath, (err, fileStats) => {
+        statCallback(filepath, (err, fileStats) => {
             if (err) {
-                return resolve();
+                return resolve(undefined);
             }
-            resolve(fileStats);
+            return resolve(fileStats);
         });
     });
 };
 
-export const isDir = async (pathname: string): Promise<Boolean> => {
+/**
+ * Determines whether a path points to a directory.
+ *
+ * @param pathname Absolute or relative path to inspect.
+ * @returns True when the path exists and is a directory.
+ */
+export const isDir = async (pathname: string): Promise<boolean> => {
     try {
         const fsStat = await stat(pathname);
         return fsStat.isDirectory();
     } catch (err) {
-        //noop
+        // noop
     }
     return false;
 };
@@ -47,9 +58,7 @@ export const getPnpmVirtualStoreDir = async (nodeModules: string): Promise<strin
         const match = /^\s*virtualStoreDir:\s*(.+)\s*$/m.exec(modulesManifest);
         if (match && match[1]) {
             const maybeQuotedValue = match[1].trim();
-            const virtualStoreDir = maybeQuotedValue
-                .replace(/^"(.*)"$/, '$1')
-                .replace(/^'(.*)'$/, '$1');
+            const virtualStoreDir = maybeQuotedValue.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
             if (virtualStoreDir) {
                 return path.resolve(nodeModules, virtualStoreDir);
             }
@@ -69,32 +78,20 @@ export const walkBack = async (startPath: string): Promise<string> => {
     return '';
 };
 
-type IGetPkgNodeModules = (args: {
-    pkgName: string;
-    nodeModules: string;
-    strict: boolean;
-}) => Promise<string>;
-export const getPkgNodeModules: IGetPkgNodeModules = async ({
-    pkgName,
-    nodeModules,
-    strict,
-}) => {
+type IGetPkgNodeModules = (args: { pkgName: string; nodeModules: string; strict: boolean }) => Promise<string>;
+export const getPkgNodeModules: IGetPkgNodeModules = async ({ pkgName, nodeModules, strict }) => {
     try {
-        const pkgPath = strict ?
-        // We need to check if the option is a valid dependency of the
-        // current project
-            path.join(nodeModules, pkgName) :
-            // Or we need to let node resolve it
-            require.resolve(pkgName, {
-                paths: [
-                    nodeModules,
-                ],
-            });
+        const pkgPath = strict
+            ? // We need to check if the option is a valid dependency of the
+              // current project
+              path.join(nodeModules, pkgName)
+            : // Or we need to let node resolve it
+              nodeRequire.resolve(pkgName, {
+                  paths: [nodeModules],
+              });
         if (await fileExists(pkgPath)) {
             try {
-                const nodePath = path.join(
-                    await walkBack(strict ? await realpath(pkgPath) : pkgPath),
-                );
+                const nodePath = path.join(await walkBack(strict ? await realpath(pkgPath) : pkgPath));
                 return nodePath;
             } catch (err) {
                 // noop

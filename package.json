@@ -2,8 +2,19 @@
   "name": "@nekobato/gatsby-plugin-pnpm",
   "version": "1.3.0",
   "description": "Maintained fork of gatsby-plugin-pnpm with pnpm support for modern virtual store layouts",
-  "main": "index.js",
-  "types": "./dist/gatsby-node.js",
+  "type": "module",
+  "main": "./dist/gatsby-node.js",
+  "types": "./dist/gatsby-node.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/gatsby-node.d.ts",
+      "import": "./dist/gatsby-node.js"
+    },
+    "./gatsby-node": {
+      "types": "./dist/gatsby-node.d.ts",
+      "import": "./dist/gatsby-node.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/nekobato/gatsby-plugin-pnpm"
@@ -29,45 +40,42 @@
   "files": [
     "dist",
     "gatsby-node.js",
-    "index.js",
     "README.md",
     "LICENSE"
   ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
-    "purge": "rimraf node_modules && npm run clean",
-    "clean": "rimraf ./dist",
-    "prebuild": "npm run clean",
-    "build": "tsc",
-    "build:watch": "run-s \"build -- -w\"",
-    "prepublishOnly": "run-s clean build",
-    "test": "run-s test:root test:silo",
-    "test:root": "jest --config ./jest.config.js --verbose",
-    "test:silo": "jest --config ./tests/silo/jest.config.js --verbose",
-    "test:coverage": "jest --config ./jest.config.js --coverage",
-    "test:coverage-all": "run-s test test:coverage"
+    "clean": "rimraf dist coverage",
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json -w",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test"
   },
   "peerDependencies": {
-    "gatsby": "~2.x.x || ~3.x.x || ~4.x.x || ~5.x.x"
+    "gatsby": "^5.0.0"
   },
   "devDependencies": {
-    "@swc/core": "^1.15.11",
-    "@swc/jest": "^0.2.39",
-    "@jtechsvcs/eslint-config-typescript": "^2.0.7",
-    "@types/jest": "^30.0.0",
+    "@eslint/js": "^9.0.0",
     "@types/node": "^25.2.3",
-    "@typescript-eslint/eslint-plugin": "^2.34.0",
-    "@typescript-eslint/parser": "^2.34.0",
-    "@typescript-eslint/typescript-estree": "^2.34.0",
-    "coveralls": "^3.1.1",
-    "eslint": "^6.8.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.1.8",
     "gatsby": "^5.16.1",
-    "jest": "^30.2.0",
-    "jest-environment-node": "^30.2.0",
-    "npm-run-all": "^4.1.5",
+    "prettier": "^3.6.2",
     "rimraf": "^6.1.2",
     "type-fest": "^5.4.4",
     "typedoc": "^0.28.16",
+    "typescript-eslint": "^8.45.0",
     "typescript": "^5.9.3",
+    "vitest": "^4.0.0",
     "webpack": "^5.105.1"
   }
 }

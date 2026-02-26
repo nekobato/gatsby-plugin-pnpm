@@ -13,6 +13,12 @@ This plugin configures Webpack module and loader resolution for packages install
 
 When using `pnpm`, Gatsby builds may fail because pnpm's `node_modules` structure differs from npm/yarn. This plugin updates Webpack resolution so Gatsby can resolve dependencies correctly.
 
+## Compatibility
+
+- Node.js: `>=20`
+- Gatsby: `>=5`
+- Package format: ESM-first
+
 ## What's updated in this fork
 
 - Published package name is now `@nekobato/gatsby-plugin-pnpm`.
@@ -30,10 +36,8 @@ Add it to `gatsby-config.js`:
 ```js
 // gatsby-config.js
 module.exports = {
-  plugins: [
-    `@nekobato/gatsby-plugin-pnpm`,
-  ],
-}
+  plugins: [`@nekobato/gatsby-plugin-pnpm`],
+};
 ```
 
 ## Migration from upstream package
@@ -75,11 +79,11 @@ Use this option to add extra module resolution targets.
 
 ## Available options
 
-| Option | Description |
-| :----- | :---------- |
-| `include` | Optional list of package names and/or directory paths that should be available to Webpack resolution. |
+| Option        | Description                                                                                                                   |
+| :------------ | :---------------------------------------------------------------------------------------------------------------------------- |
+| `include`     | Optional list of package names and/or directory paths that should be available to Webpack resolution.                         |
 | `projectPath` | Optional path to the project root (directory containing `package.json`). Used for resolving package and `node_modules` paths. |
-| `strict` | Optional boolean, default `true`. `true` keeps pnpm-style project scoping. `false` uses Node's upward directory resolution. |
+| `strict`      | Optional boolean, default `true`. `true` keeps pnpm-style project scoping. `false` uses Node's upward directory resolution.   |
 
 Example:
 
@@ -93,10 +97,7 @@ module.exports = {
       resolve: `@nekobato/gatsby-plugin-pnpm`,
       options: {
         projectPath: path.dirname(__dirname),
-        include: [
-          `my-awesome-package`,
-          `path/to/my/private/webpack/loaders`,
-        ],
+        include: [`my-awesome-package`, `path/to/my/private/webpack/loaders`],
         strict: true,
       },
     },
