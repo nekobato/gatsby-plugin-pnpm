@@ -1,6 +1,6 @@
 {
   "name": "@nekobato/gatsby-plugin-pnpm",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Maintained fork of gatsby-plugin-pnpm with pnpm support for modern virtual store layouts",
   "type": "module",
   "main": "./dist/gatsby-node.js",
