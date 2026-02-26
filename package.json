@@ -13,7 +13,8 @@
     "./gatsby-node": {
       "types": "./dist/gatsby-node.d.ts",
       "import": "./dist/gatsby-node.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "repository": {
     "type": "git",
