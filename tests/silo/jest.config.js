@@ -1,21 +1,29 @@
 const path = require('path');
 const rootDir = path.resolve(__dirname, '..', '..');
 const projectPath = __dirname;
-const pkgJsonPath = path.join(projectPath, 'package.json');
 const tsConfigPath = path.join(rootDir, 'tsconfig.json');
 
 const { compilerOptions } = require(tsConfigPath);
 
 const jestConfig = {
     rootDir: projectPath,
-    globals: {
-        'ts-jest': {
-            tsconfig: tsConfigPath,
-            packageJson: pkgJsonPath,
-        },
-    },
     transform: {
-        '\\.(ts|tsx)': 'ts-jest',
+        '^.+\\.(ts|tsx)$': [
+            '@swc/jest',
+            {
+                sourceMaps: 'inline',
+                jsc: {
+                    parser: {
+                        syntax: 'typescript',
+                        tsx: true,
+                    },
+                    target: 'es2020',
+                },
+                module: {
+                    type: 'commonjs',
+                },
+            },
+        ],
     },
     moduleFileExtensions: [
         'ts',

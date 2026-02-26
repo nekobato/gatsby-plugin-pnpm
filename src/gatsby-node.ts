@@ -1,7 +1,6 @@
 import * as path from 'path';
-import { Configuration } from 'webpack';
+import type { Configuration } from 'webpack';
 import { GatsbyNode, CreateWebpackConfigArgs, PluginOptions } from 'gatsby';
-import uniq from 'lodash.uniq';
 import { isDir, getPkgNodeModules, getPnpmVirtualStoreDir } from './utils';
 import { fixFrameworkCache } from "./fixes";
 
@@ -10,6 +9,14 @@ export interface IPluginOptions extends Omit<PluginOptions, 'plugins'> {
     projectPath?: string;
     strict?: boolean;
 }
+
+/**
+ * Returns a unique list while preserving the original order.
+ *
+ * @param {string[]} values Input values.
+ * @returns {string[]} Deduplicated values in first-seen order.
+ */
+const uniq = (values: string[]): string[] => Array.from(new Set(values));
 
 /**
  * Adds settings to the webpack configuration so that it will be able to resolve modules

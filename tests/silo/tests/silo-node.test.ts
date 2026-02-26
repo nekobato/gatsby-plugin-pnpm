@@ -1,6 +1,5 @@
 import * as path from 'path';
-import uniq from 'lodash.uniq';
-import { Configuration as WebpackConfig } from 'webpack';
+import type { Configuration as WebpackConfig } from 'webpack';
 import { CreateWebpackConfigArgs as _CreateWebpackConfigArgs } from 'gatsby';
 import { realpath, walkBack } from '../../../src/utils';
 import { onCreateWebpackConfig as _onCreateWebpackConfig, IPluginOptions } from '../../../src/gatsby-node';
@@ -19,6 +18,8 @@ interface CreateWebpackConfigArgs {
     store: _CreateWebpackConfigArgs["store"];
 }
 type IOnCreateWebpackConfig = (actions: CreateWebpackConfigArgs, options?: IPluginOptions) => Promise<void>;
+
+const uniq = (values: string[]): string[] => Array.from(new Set(values));
 
 const getConfigResults = (resolutions: string[]): WebpackConfig => {
     return {
@@ -54,7 +55,7 @@ describe('Defining module/loader resolutions in silo', () => {
         },
     };
 
-    const curDir = process.cwd();
+    const curDir = path.resolve(__dirname, '..');
     const testsDir = path.resolve(curDir, '..');
     const testsNodeModules = path.join(testsDir, 'node_modules');
     const rootDir = path.resolve(curDir, '..', '..');
@@ -185,7 +186,7 @@ describe('Defining module/loader resolutions in silo', () => {
                 strict: true,
                 projectPath: testsDir,
             });
-            expect(reporter.panic).toBeCalledTimes(1);
+            expect(reporter.panic).toHaveBeenCalledTimes(1);
         });
     });
 });

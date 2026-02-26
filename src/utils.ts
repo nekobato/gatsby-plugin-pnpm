@@ -3,7 +3,7 @@ import Module from "module";
 import { stat as _stat, Stats, realpath as _realpath, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
 
-export const createRequire = Module.createRequire || Module.createRequireFromPath;
+export const createRequire = Module.createRequire;
 
 const stat = promisify(_stat);
 export const realpath = promisify(_realpath);

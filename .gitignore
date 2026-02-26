@@ -68,6 +68,9 @@ yarn-error.log
 # Yarn Integrity file
 .yarn-integrity
 
+# Editor directories and files
+.vscode/
+
 dist
 
 !tests/node_modules

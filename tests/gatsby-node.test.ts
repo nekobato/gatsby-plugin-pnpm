@@ -1,7 +1,6 @@
 import * as path from 'path';
-import uniq from 'lodash.uniq';
 import { CreateWebpackConfigArgs as _CreateWebpackConfigArgs } from 'gatsby';
-import { Configuration as WebpackConfig } from 'webpack';
+import type { Configuration as WebpackConfig } from 'webpack';
 import { realpath, walkBack } from '../src/utils';
 import { onCreateWebpackConfig as _onCreateWebpackConfig, IPluginOptions } from '../src/gatsby-node';
 
@@ -29,6 +28,8 @@ const defaultOptimization = {
         },
     },
 };
+
+const uniq = (values: string[]): string[] => Array.from(new Set(values));
 
 const getConfigResults = (resolutions: string[]): WebpackConfig => {
     return {

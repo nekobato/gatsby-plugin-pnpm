@@ -1,16 +1,30 @@
 import path from "path";
-import { Configuration, Options } from 'webpack';
-import get from 'lodash.get';
+import type { Configuration } from 'webpack';
 import { createRequire } from './utils';
+
+type FrameworkModule = {
+    resource?: string;
+};
+
+type FrameworkCacheGroup = {
+    test?: RegExp | ((mod: FrameworkModule) => boolean);
+};
 
 /**
  * Fix missing framework in development.
  * See https://github.com/Js-Brecht/gatsby-plugin-pnpm/issues/8
  */
 export const fixFrameworkCache = (config: Configuration, siteDirectory: string) => {
+    const splitChunks = config.optimization?.splitChunks;
     const framework = (
-        get(config, "optimization.splitChunks.cacheGroups.framework", false)
-    ) as Options.CacheGroupsOptions | boolean;
+        splitChunks &&
+        typeof splitChunks === 'object' &&
+        splitChunks.cacheGroups &&
+        typeof splitChunks.cacheGroups === 'object' &&
+        'framework' in splitChunks.cacheGroups
+            ? splitChunks.cacheGroups.framework
+            : false
+    ) as FrameworkCacheGroup | boolean;
 
     if (!framework) return;
     if (typeof framework !== "object" || !framework.test) return;
@@ -45,7 +59,7 @@ export const fixFrameworkCache = (config: Configuration, siteDirectory: string) 
     const isRootDependency = (val?: string) => (
         frameworkList.some((f) => val?.startsWith(f))
     );
-    framework.test = (mod) => (
+    framework.test = (mod: FrameworkModule) => (
         isRootDependency(mod.resource)
     );
 };

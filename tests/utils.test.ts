@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as os from 'os';
-import { existsSync, mkdirSync, mkdtempSync, rmdirSync, writeFileSync } from 'fs';
-import { mocked } from 'ts-jest/utils';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import {
     isDir,
     fileExists,
@@ -17,8 +16,8 @@ const { resolve, join } = jest.requireActual('path');
 describe('Utility function tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mocked(path.resolve).mockImplementation((...str) => resolve(...str));
-        mocked(path.join).mockImplementation((...str) => join(...str));
+        jest.mocked(path.resolve).mockImplementation((...str) => resolve(...str));
+        jest.mocked(path.join).mockImplementation((...str) => join(...str));
     });
 
     const curDir = process.cwd();
@@ -35,7 +34,7 @@ describe('Utility function tests', () => {
     });
     describe('walkBack() is accurate', () => {
         beforeEach(() => {
-            mocked(path.resolve).mockImplementation((str) => str);
+            jest.mocked(path.resolve).mockImplementation((str) => str);
         });
 
         it('With node_modules as start, and with nested paths', async () => {
@@ -90,7 +89,7 @@ describe('Utility function tests', () => {
 
         const removeTempDir = (target: string) => {
             if (existsSync(target)) {
-                rmdirSync(target, { recursive: true });
+                rmSync(target, { recursive: true, force: true });
             }
         };
 
