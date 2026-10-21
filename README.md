@@ -10,7 +10,7 @@ When using `pnpm`, Gatsby builds may fail because pnpm's `node_modules` structur
 
 ## Compatibility
 
-- Node.js: `>=20`
+- Node.js: `^22.23.4 || ^24.22.1 || ^26.12.1`
 - Gatsby: `>=5`
 - Package format: ESM-first
 
